@@ -1,168 +1,72 @@
+pugixml [![Build Status](https://travis-ci.org/zeux/pugixml.svg?branch=master)](https://travis-ci.org/zeux/pugixml) [![Build status](https://ci.appveyor.com/api/projects/status/9hdks1doqvq8pwe7/branch/master?svg=true)](https://ci.appveyor.com/project/zeux/pugixml) [![codecov.io](https://codecov.io/github/zeux/pugixml/coverage.svg?branch=master)](https://codecov.io/github/zeux/pugixml?branch=master) ![MIT](https://img.shields.io/badge/license-MIT-blue.svg)
+=======
 
+pugixml is a C++ XML processing library, which consists of a DOM-like interface with rich traversal/modification
+capabilities, an extremely fast XML parser which constructs the DOM tree from an XML file/buffer, and an XPath 1.0
+implementation for complex data-driven tree queries. Full Unicode support is also available, with Unicode interface
+variants and conversions between different Unicode encodings (which happen automatically during parsing/saving).
 
-## 📌 Project Description — Route Planning using A\* on OpenStreetMap
+pugixml is used by a lot of projects, both open-source and proprietary, for performance and easy-to-use interface.
 
-This project implements a **C++ application** that performs **route planning** on real-world map data using the **A* search algorithm*\*. The map data is sourced from **OpenStreetMap (OSM)**, and the graphical rendering is done using the **IO2D** graphics library.
+## Documentation
 
-The goal of the application is to find the **shortest path between two points** (start and end coordinates) on a real map and **visually display the computed path** using a graphical interface.
+Documentation for the current release of pugixml is available on-line as two separate documents:
 
----
+* [Quick-start guide](https://pugixml.org/docs/quickstart.html), that aims to provide enough information to start using the library;
+* [Complete reference manual](https://pugixml.org/docs/manual.html), that describes all features of the library in detail.
 
-### 🔍 Key Features
+You’re advised to start with the quick-start guide; however, many important library features are either not described in it at all or only mentioned briefly; if you require more information you should read the complete manual.
 
-* 📍 **Real Map Data**: Uses `.osm` files (OpenStreetMap XML format) to load map structures including roads, intersections, and paths.
-* 🚗 **A* Search Algorithm*\*: Efficient heuristic-based pathfinding, balancing path cost and distance to goal.
-* 🎨 **2D Graphical Visualization**: Uses IO2D (a 2D graphics library) to render the map and animate the shortest path.
-* ⚙️ **Customizable Input**: Users can select different start and end coordinates directly from the UI or through command line.
-* 🧪 **Unit Testing**: Includes test cases to verify correctness of components like distance calculation, node sorting, neighbor finding, etc.
+## Example
 
----
+Here's an example of how code using pugixml looks; it opens an XML file, goes over all Tool nodes and prints tools that have a Timeout attribute greater than 0:
 
-### 🧠 Learning Objectives (from Udacity C++ Nanodegree)
+```c++
+#include "pugixml.hpp"
+#include <iostream>
 
-* ✳️ Object-Oriented Design and Encapsulation
-* ✳️ Memory management (pointers, references, object lifetime)
-* ✳️ Working with third-party libraries (IO2D, CMake)
-* ✳️ Modern C++ features (smart pointers, lambda functions, range-based loops)
-* ✳️ Implementing algorithms from scratch (A\* pathfinding)
-
----
-
-## ⚙️ Requirements
-
-* **WSL (Ubuntu)** on Windows
-* **VS Code with WSL extension**
-* **CMake ≥ 3.11**
-* **g++ ≥ 7.4**
-* **make**
-* **IO2D graphics library**
-
----
-
-## 🔧 Step-by-Step Installation
-
-### 🔹 1. Open Terminal in WSL (Ubuntu)
-
-Make sure you're inside WSL:
-
-```bash
-wsl
+int main()
+{
+    pugi::xml_document doc;
+    pugi::xml_parse_result result = doc.load_file("xgconsole.xml");
+    if (!result)
+        return -1;
+        
+    for (pugi::xml_node tool: doc.child("Profile").child("Tools").children("Tool"))
+    {
+        int timeout = tool.attribute("Timeout").as_int();
+        
+        if (timeout > 0)
+            std::cout << "Tool " << tool.attribute("Filename").value() << " has timeout " << timeout << "\n";
+    }
+}
 ```
 
----
+And the same example using XPath:
 
-### 🔹 2. Install Build Dependencies
+```c++
+#include "pugixml.hpp"
+#include <iostream>
 
-```bash
-sudo apt update
-sudo apt install build-essential cmake g++ libcairo2-dev libgraphicsmagick1-dev libpng-dev -y
+int main()
+{
+    pugi::xml_document doc;
+    pugi::xml_parse_result result = doc.load_file("xgconsole.xml");
+    if (!result)
+        return -1;
+        
+    pugi::xpath_node_set tools_with_timeout = doc.select_nodes("/Profile/Tools/Tool[@Timeout > 0]");
+    
+    for (pugi::xpath_node node: tools_with_timeout)
+    {
+        pugi::xml_node tool = node.node();
+        std::cout << "Tool " << tool.attribute("Filename").value() <<
+            " has timeout " << tool.attribute("Timeout").as_int() << "\n";
+    }
+}
 ```
 
----
 
-### 🔹 3. Install IO2D Library
+## License
 
-```bash
-cd ~
-git clone --recurse-submodules https://github.com/cpp-io2d/P0267_RefImpl
-cd P0267_RefImpl
-mkdir Debug
-cd Debug
-cmake -DCMAKE_BUILD_TYPE=Debug ..
-cmake --build .
-sudo make install
-```
-
----
-
-### 🔹 4. Clone This Project
-
-```bash
-cd ~
-git clone --recurse-submodules https://github.com/YourUsername/route-planning-main.git
-cd route-planning-main
-```
-
-Or if you already have the folder from ZIP:
-
-```bash
-cd ~
-mv ~/Downloads/route-planning-main ~/route-planning-main
-cd route-planning-main
-```
-
----
-
-## 🧱 Build Instructions
-
-```bash
-mkdir build
-cd build
-cmake ..
-make
-```
-
-> If IO2D is correctly installed, this will build the app.
-
----
-
-## 🚀 Run the Application
-
-```bash
-./OSM_A_star_search
-```
-
-To run with a custom map:
-
-```bash
-./OSM_A_star_search -f ../map.osm
-```
-
-Make sure `map.osm` is placed inside the main `route-planning-main/` folder.
-
----
-
-## 🧪 Run Tests
-
-If the test binary was compiled:
-
-```bash
-./test
-```
-
----
-
-## 🗺️ Download a Map File (if needed)
-
-You can use this sample map (Berlin):
-[https://raw.githubusercontent.com/udacity/CppND-Route-Planning-Project/master/map.osm](https://raw.githubusercontent.com/udacity/CppND-Route-Planning-Project/master/map.osm)
-
-Download using:
-
-```bash
-wget https://raw.githubusercontent.com/udacity/CppND-Route-Planning-Project/master/map.osm
-```
-
-Place it in the root of the `route-planning-main` folder.
-
----
-
-## ✅ Folder Structure
-
-```
-route-planning-main/
-├── build/
-├── map.osm
-├── CMakeLists.txt
-├── src/
-└── README.md
-```
-
----
-
-### 🖼️ Sample Output (Visual)
-
-> 🚀 A visual window pops up displaying the map with a red path traced from the start to the goal node — all computed using A\*!
-
----
-
+This library is available to anybody free of charge, under the terms of MIT License (see LICENSE.md).
